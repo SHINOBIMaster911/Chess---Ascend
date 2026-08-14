@@ -1,1 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#16181d">
+<title>Chess Ascension</title>
 
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    background:#16181d;
+    color:#e5e7eb;
+    font-family:Arial,sans-serif;
+}
+
+.app{
+    max-width:720px;
+    margin:auto;
+    padding:20px;
+}
+
+h1{
+    margin:0;
+    font-size:26px;
+}
+
+h2{
+    margin-top:0;
+}
+
+.sub{
+    color:#9ca3af;
+    font-size:13px;
+}
+
+.card{
+    background:#22252b;
+    border:1px solid #30343c;
+    border-radius:14px;
+    padding:18px;
+    margin-top:16px;
+}
+
+.rank{
+    font-size:30px;
+    font-weight:bold;
+    margin:8px 0;
+}
+
+.cp{
+    color:#aaa;
+}
+
+.progress-container{
+    height:12px;
+    background:#343840;
+    border-radius:20px;
+    overflow:hidden;
+    margin:14px 0;
+}
+
+.progress{
+    height:100%;
+    width:0%;
+    background:#5b9bd5;
+    transition:width .4s ease;
+}
+
+.quest{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:#2a2d34;
+    padding:14px;
+    border-radius:10px;
+    margin-top:10px;
+}
+
+.quest input{
+    width:20px;
+    height:20px;
+}
+
+.quest b{
+    display:block;
+}
+
+.quest small{
+    display:block;
+    color:#999;
+    margin-top:3px;
+}
+
+button{
+    width:100%;
+    border:none;
+    border-radius:10px;
+    padding:14px;
+    margin-top:14px;
+    font-weight:bold;
+    font-size:15px;
+    cursor:pointer;
+    background:#5b9bd5;
+    color:white;
+}
+
+button:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+}
+
+.secondary{
+    background:#343840;
+}
+
+.tabs{
+    display:flex;
+    gap:8px;
+    margin-top:16px;
+}
+
+.tabs button{
+    margin:0;
+    background:#2a2d34;
+}
+
+.tabs button.active{
+    background:#5b9bd5;
+}
+
+.panel{
+    display:none;
+}
+
+.panel.active{
+    display:block;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+}
+
+.stat{
+    background:#2a2d34;
+    padding:13px;
+    border-radius:10px;
+    text-align:center;
+}
+
+.stat strong{
+    display:block;
+    font-size:22px;
+}
+
+.stat span{
+    color:#999;
+    font-size:12px;
+}
+
+.item{
+    display:flex;
+    justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid #343840;
+}
+
+.history{
+    max-height:350px;
+    overflow-y:auto;
+}
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.7);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.modal-box{
+    background:#22252b;
+    border:1px solid #3a3e46;
+    border-radius:15px;
+    padding:22px;
+    max-width:420px;
+    width:100%;
+    text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<h1>♟ Chess Ascension</h1>
+<div class="sub">Train. Progress. Ascend.</div>
+
+<div class="card">
+
+<div class="sub">CURRENT RANK</div>
+
+<div id="rank" class="rank">
+Novice
+</div>
+
+<div id="cp" class="cp">
+0 CP
+</div>
+
+<div class="progress-container">
+<div id="progress" class="progress"></div>
+</div>
+
+<div id="nextRank" class="sub">
+10 CP until Beginner
+</div>
+
+</div>
+
+
+<div class="tabs">
+
+<button class="active"
+onclick="showTab('training',this)">
+Training
+</button>
+
+<button
+onclick="showTab('history',this)">
+History
+</button>
+
+<button
+onclick="showTab('ranks',this)">
+Ranks
+</button>
+
+</div>
+
+
+<section id="training" class="panel active">
+
+<div class="card">
+
+<h2>Today's Session</h2>
+
+<div class="sub">
+Complete all three stages for
+<b>+1 CP</b> and <b>+3 hours</b>.
+</div>
+
+
+<label class="quest">
+
+<input type="checkbox" class="stage">
+
+<span>
+<b>🧩 Tactics</b>
+<small>60 minutes</small>
+</span>
+
+</label>
+
+
+<label class="quest">
+
+<input type="checkbox" class="stage">
+
+<span>
+<b>♟ Games + Analysis</b>
+<small>60 minutes</small>
+</span>
+
+</label>
+
+
+<label class="quest">
+
+<input type="checkbox" class="stage">
+
+<span>
+<b>📚 Chess Study</b>
+<small>60 minutes</small>
+</span>
+
+</label>
+
+
+<button
+id="completeButton"
+onclick="openConfirmation()"
+disabled>
+
+Complete Session
+
+</button>
+
+</div>
+
+
+<div class="card">
+
+<h2>Lifetime Stats</h2>
+
+<div class="stats">
+
+<div class="stat">
+<strong id="totalCP">0</strong>
+<span>Chess Points</span>
+</div>
+
+<div class="stat">
+<strong id="totalSessions">0</strong>
+<span>Sessions</span>
+</div>
+
+<div class="stat">
+<strong id="totalHours">0</strong>
+<span>Training Hours</span>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section id="history" class="panel">
+
+<div class="card">
+
+<h2>Session History</h2>
+
+<div id="historyList" class="history">
+
+<div class="sub">
+No sessions yet.
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section id="ranks" class="panel">
+
+<div class="card">
+
+<h2>Rank Ladder</h2>
+
+<div id="rankList"></div>
+
+</div>
+
+</section>
+
+</div>
+
+
+<div id="confirmation" class="modal">
+
+<div class="modal-box">
+
+<h2>Complete Session?</h2>
+
+<p>
+This will award:
+</p>
+
+<p>
+<b>+1 Chess Point</b><br>
+<b>+3 Training Hours</b>
+</p>
+
+<button onclick="completeSession()">
+Confirm
+</button>
+
+<button
+class="secondary"
+onclick="closeConfirmation()">
+
+Cancel
+
+</button>
+
+</div>
+
+</div>
+
+
+<div id="rankUp" class="modal">
+
+<div class="modal-box">
+
+<h2>🎉 RANK UP!</h2>
+
+<p id="rankUpMessage"></p>
+
+<button onclick="closeRankUp()">
+Continue
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+const ranks = [
+
+[0,"Novice"],
+
+[10,"Beginner"],
+
+[30,"Intermediate"],
+
+[75,"Advanced"],
+
+[150,"Expert"],
+
+[350,"Low-Tier Saint"],
+[450,"Mid-Tier Saint"],
+[550,"High-Tier Saint"],
+
+[700,"Low-Tier King"],
+[850,"Mid-Tier King"],
+[1000,"High-Tier King"],
+
+[1200,"Low-Tier Emperor"],
+[1400,"Mid-Tier Emperor"],
+[1600,"High-Tier Emperor"],
+
+[1900,"Low-Tier God"],
+[2400,"Mid-Tier God"],
+[3000,"High-Tier God"]
+
+];
+
+
+let data = JSON.parse(
+localStorage.getItem("chessAscension")
+) || {
+
+cp:0,
+sessions:0,
+hours:0,
+history:[]
+
+};
+
+
+function saveData(){
+
+localStorage.setItem(
+"chessAscension",
+JSON.stringify(data)
+);
+
+}
+
+
+function getCurrentRank(){
+
+let current = ranks[0];
+
+for(let rank of ranks){
+
+if(data.cp >= rank[0]){
+
+current = rank;
+
+}else{
+
+break;
+
+}
+
+}
+
+return current;
+
+}
+
+
+function updateUI(){
+
+const currentRank =
+getCurrentRank();
+
+const currentIndex =
+ranks.indexOf(currentRank);
+
+const nextRank =
+ranks[currentIndex + 1];
+
+
+document.getElementById("rank")
+.textContent =
+currentRank[1];
+
+
+document.getElementById("cp")
+.textContent =
+data.cp+" CP";
+
+
+document.getElementById("totalCP")
+.textContent =
+data.cp;
+
+
+document.getElementById("totalSessions")
+.textContent =
+data.sessions;
+
+
+document.getElementById("totalHours")
+.textContent =
+data.hours;
+
+
+if(nextRank){
+
+const pointsIntoRank =
+data.cp-currentRank[0];
+
+const pointsNeeded =
+nextRank[0]-currentRank[0];
+
+const percentage =
+Math.min(
+100,
+(pointsIntoRank/pointsNeeded)*100
+);
+
+
+document.getElementById("progress")
+.style.width =
+percentage+"%";
+
+
+document.getElementById("nextRank")
+.textContent =
+(nextRank[0]-data.cp)+
+" CP until "+
+nextRank[1];
+
+}else{
+
+document.getElementById("progress")
+.style.width="100%";
+
+document.getElementById("nextRank")
+.textContent=
+"Highest rank reached";
+
+}
+
+
+updateHistory();
+updateRanks();
+
+}
+
+
+function updateHistory(){
+
+const list =
+document.getElementById(
+"historyList"
+);
+
+
+if(data.history.length===0){
+
+list.innerHTML=
+'<div class="sub">No sessions yet.</div>';
+
+return;
+
+}
+
+
+list.innerHTML="";
+
+
+const reversed =
+[...data.history].reverse();
+
+
+reversed.forEach(
+(date,index)=>{
+
+const item =
+document.createElement("div");
+
+item.className="item";
+
+
+item.innerHTML=
+
+"<span>Session "+
+(data.history.length-index)+
+"</span>"+
+"<span>"+
+date+
+"</span>";
+
+
+list.appendChild(item);
+
+}
+);
+
+}
+
+
+function updateRanks(){
+
+const list =
+document.getElementById(
+"rankList"
+);
+
+
+list.innerHTML="";
+
+
+ranks.forEach(rank=>{
+
+const item =
+document.createElement("div");
+
+item.className="item";
+
+
+item.innerHTML=
+
+"<span>"+
+rank[1]+
+"</span>"+
+"<b>"+
+rank[0]+
+" CP</b>";
+
+
+list.appendChild(item);
+
+});
+
+}
+
+
+const stages =
+document.querySelectorAll(".stage");
+
+
+const completeButton =
+document.getElementById(
+"completeButton"
+);
+
+
+stages.forEach(stage=>{
+
+stage.addEventListener(
+"change",
+function(){
+
+const allComplete =
+[...stages].every(
+stage=>stage.checked
+);
+
+
+completeButton.disabled =
+!allComplete;
+
+}
+);
+
+});
+
+
+function openConfirmation(){
+
+document.getElementById(
+"confirmation"
+).style.display="flex";
+
+}
+
+
+function closeConfirmation(){
+
+document.getElementById(
+"confirmation"
+).style.display="none";
+
+}
+
+
+function completeSession(){
+
+closeConfirmation();
+
+
+const oldRank =
+getCurrentRank()[1];
+
+
+data.cp += 1;
+
+data.sessions += 1;
+
+data.hours += 3;
+
+
+data.history.push(
+new Date().toLocaleString()
+);
+
+
+saveData();
+
+updateUI();
+
+
+const newRank =
+getCurrentRank()[1];
+
+
+if(newRank !== oldRank){
+
+document.getElementById(
+"rankUpMessage"
+).innerHTML=
+
+"You reached <b>"+
+newRank+
+"</b>!<br><br>"+
+"You now have <b>"+
+data.cp+
+" Chess Points</b>.";
+
+
+document.getElementById(
+"rankUp"
+).style.display="flex";
+
+}
+
+
+stages.forEach(
+stage=>stage.checked=false
+);
+
+
+completeButton.disabled=true;
+
+}
+
+
+function closeRankUp(){
+
+document.getElementById(
+"rankUp"
+).style.display="none";
+
+}
+
+
+function showTab(id,button){
+
+document
+.querySelectorAll(".panel")
+.forEach(panel=>{
+panel.classList.remove("active");
+});
+
+
+document
+.getElementById(id)
+.classList.add("active");
+
+
+document
+.querySelectorAll(".tabs button")
+.forEach(button=>{
+button.classList.remove("active");
+});
+
+
+button.classList.add("active");
+
+}
+
+
+updateUI();
+
+</script>
+
+</body>
+  </html>
