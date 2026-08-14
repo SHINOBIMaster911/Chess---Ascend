@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#16181d">
 <title>Chess Ascension</title>
-
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.png">
 <style>
 *{box-sizing:border-box}
 
@@ -812,6 +813,10 @@ button.classList.add("active");
 updateUI();
 
 </script>
-
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./service-worker.js");
+}
+</script>
 </body>
   </html>
